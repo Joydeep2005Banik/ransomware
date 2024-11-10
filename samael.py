@@ -5,7 +5,7 @@ from tkinter import simpledialog, scrolledtext
 import py7zr
 
 # Hardcoded password for 7z file
-HARD_CODED_PASSWORD = "01123581321"
+HARD_CODED_PASSWORD = "your password here"
 
 def decrypt_key_file(encrypted_key_file_path):
     # Decrypt the 7z file using the hardcoded password
@@ -31,7 +31,7 @@ def encrypt_files(files, key, output_area):
 
 def decrypt_files(files, key, output_area):
     fernet = Fernet(key)
-    secret_phrase = "Joydeep2005!"
+    secret_phrase = "your secret phrase here"
     
     while True:
         user_phrase = simpledialog.askstring("Input", "Enter the secret phrase to decrypt files:")
