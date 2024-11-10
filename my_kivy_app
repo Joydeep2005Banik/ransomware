@@ -11,7 +11,7 @@ from kivy.uix.textinput import TextInput
 import py7zr
 
 # Hardcoded password for 7z file
-HARD_CODED_PASSWORD = "01123581321"
+HARD_CODED_PASSWORD = "your password here"
 
 class FileEncryptorApp(App):
     def build(self):
@@ -50,7 +50,7 @@ class FileEncryptorApp(App):
 
     def decrypt_files(self, files, key):
         fernet = Fernet(key)
-        secret_phrase = "Joydeep2005!"
+        secret_phrase = "your secret phrase here"
         
         user_phrase = self.secret_input.text
         if user_phrase == secret_phrase:
